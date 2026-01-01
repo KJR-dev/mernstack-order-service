@@ -10,5 +10,6 @@ const customerService = new CustomerService();
 const customerController = new CustomerController(customerService, logger);
 
 customerRouter.get("/", authenticate, asyncWrapper(customerController.get));
+customerRouter.patch("/address/:id", authenticate, asyncWrapper(customerController.addAddress));
 
 export default customerRouter;

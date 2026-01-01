@@ -13,3 +13,10 @@ export interface Customer {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface AddAddress {
+  userId: string;
+  id: string;
+  text: string;
+  isDefault: boolean;
+}
