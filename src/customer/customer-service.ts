@@ -18,7 +18,7 @@ export class CustomerService {
       },
       {
         $push: {
-          address: {
+          addresses: {
             text: addressData.text,
             isDefault: addressData.isDefault,
           },

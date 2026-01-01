@@ -33,7 +33,7 @@ const customerSchema = new mongoose.Schema<Customer>(
       type: String,
       required: true,
     },
-    address: {
+    addresses: {
       type: [addressSchema],
       required: false,
     },

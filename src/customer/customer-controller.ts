@@ -14,7 +14,7 @@ export class CustomerController {
 
   get = async (req: Request, res: Response) => {
     const { sub: userId, firstName, lastName, email, tenantId } = req.auth;
-    const address = [];
+    const addresses = [];
     const customer = await this.customerService.get(userId);
     if (!customer) {
       const customerData: Customer = {
@@ -22,7 +22,7 @@ export class CustomerController {
         firstName,
         lastName,
         email,
-        address,
+        addresses,
         tenantId,
       };
       const newCustomer = await this.customerService.create(customerData);
