@@ -4,6 +4,7 @@ import productCacheModel from "./productCacheModel";
 export const handleProductUpdate = async (value: string) => {
   try {
     const product: ProductMessage = JSON.parse(value);
+    console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅", product);
 
     if (!product?.id) {
       throw new Error("Invalid product message: missing product id");
