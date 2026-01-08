@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Logger } from "winston";
+import couponModel from "../coupon/coupon-model";
 import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import {
@@ -19,13 +20,6 @@ export class OrderController {
     // Collect product ids
     const productIds = cart.map((item) => item._id);
 
-    // Fetch product pricing cache (cache is optional)
-    const productPricings: ProductPricingCache[] = await productCacheModel.find(
-      {
-        productId: { $in: productIds },
-      },
-    );
-
     // Collect topping ids safely
     const cartToppingIds = cart.reduce<string[]>((acc, item) => {
       acc.push(
@@ -35,6 +29,13 @@ export class OrderController {
       );
       return acc;
     }, []);
+
+    // Fetch product pricing cache (cache is optional)
+    const productPricings: ProductPricingCache[] = await productCacheModel.find(
+      {
+        productId: { $in: productIds },
+      },
+    );
 
     // Fetch topping cache
     const toppingPricings: ToppingPricingCache[] = await toppingCacheModel.find(
@@ -109,26 +110,53 @@ export class OrderController {
   };
 
   // =============================
+  // Get coupon code
+  // =============================
+  private getDiscountPercentage = async (
+    couponCode: string,
+    tenantId: string,
+  ) => {
+    const code = await couponModel.findOne({ code: couponCode, tenantId });
+    if (!code) {
+      return 0;
+    }
+    const currentDate = new Date();
+    const couponDate = new Date(code.validUpto);
+    if (currentDate <= couponDate) {
+      return code.discount;
+    }
+    return 0;
+  };
+  // =============================
   // Create Order
   // =============================
   create = async (req: Request, res: Response) => {
-    const rawCart = req.body.cart;
-
-    // Normalize cart (single item or array)
-    if (!rawCart) {
-      return res.status(400).json({
-        success: false,
-        message: "Cart is required",
-      });
+    const totalPrice = await this.calculateTotal(req.body.cart);
+    let discountPercentage = 0;
+    const couponCode = req.body.couponCode;
+    const tenantId = req.body.tenantId;
+    if (couponCode) {
+      discountPercentage = await this.getDiscountPercentage(
+        couponCode,
+        tenantId,
+      );
     }
+    const discountAmount = Math.round((totalPrice * discountPercentage) / 100);
 
-    const cart: CartItem[] = Array.isArray(rawCart) ? rawCart : [rawCart];
-
-    const totalPrice = await this.calculateTotal(cart);
-
+    const priceAfterDiscount = totalPrice - discountAmount;
+    // todo: May be store in db for each tenant
+    const TAXES_PERCENT = 18;
+    const taxes = Math.round((priceAfterDiscount * TAXES_PERCENT) / 100);
+    
     return res.json({
       success: true,
-      totalPrice,
+      priceAfterDiscount,
+      taxes,
     });
   };
 }
+// 5 items - 900
+// total 900 -> db
+
+// order - service            product - service
+//   5 items - 900             5 items- 900 1000 throw error
