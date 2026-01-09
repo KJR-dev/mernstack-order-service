@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Logger } from "winston";
 import couponModel from "../coupon/coupon-model";
 import { IdempotencyService } from "../idempotency/idempotency-service";
+import { PaymentGateway } from "../payment/payment-types";
 import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import {
@@ -18,6 +19,7 @@ export class OrderController {
     private logger: Logger,
     private orderService: OrderService,
     private idempotencyService: IdempotencyService,
+    private paymentGateway: PaymentGateway,
   ) {}
 
   // =============================
@@ -196,9 +198,19 @@ export class OrderController {
     const newOrder = await this.orderService.create(orderData);
 
     // Payment processing
+    // todo: Error handling
+    // todo: add logging
+    const session = await this.paymentGateway.createSession({
+      amount: finalTotal,
+      orderId: newOrder._id.toString(),
+      tenantId: tenantId,
+      currency: "inr",
+      idempotencyKey: idempotencyKey,
+    });
 
+    // todo: Update order document -> paymentid -> sessionId
     return res.json({
-      newOrder,
+      paymentUrl: session.paymentUrl,
     });
   };
 }
