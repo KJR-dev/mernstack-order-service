@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Logger } from "winston";
 import couponModel from "../coupon/coupon-model";
+import { IdempotencyService } from "../idempotency/idempotency-service";
 import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import {
@@ -9,9 +10,15 @@ import {
   Topping,
   ToppingPricingCache,
 } from "../types";
+import { OrderService } from "./order-service";
+import { OrderStatus, PaymentStatus } from "./order-types";
 
 export class OrderController {
-  constructor(private logger: Logger) {}
+  constructor(
+    private logger: Logger,
+    private orderService: OrderService,
+    private idempotencyService: IdempotencyService,
+  ) {}
 
   // =============================
   // Calculate Cart Total
@@ -131,10 +138,30 @@ export class OrderController {
   // Create Order
   // =============================
   create = async (req: Request, res: Response) => {
-    const totalPrice = await this.calculateTotal(req.body.cart);
+    const {
+      cart,
+      couponCode,
+      tenantId,
+      paymentMode,
+      customerId,
+      comment,
+      address,
+    } = req.body;
+
+    const idempotencyKey = req.headers["idempotency-key"] as string;
+    if (!idempotencyKey) {
+      return res.status(400).json({ message: "Idempotency key required" });
+    }
+
+    // 🔁 Idempotency check
+    const existing = await this.idempotencyService.get(idempotencyKey);
+    if (existing) {
+      return res.json({ newOrder: existing.response });
+    }
+
+    const totalPrice = await this.calculateTotal(cart);
     let discountPercentage = 0;
-    const couponCode = req.body.couponCode;
-    const tenantId = req.body.tenantId;
+
     if (couponCode) {
       discountPercentage = await this.getDiscountPercentage(
         couponCode,
@@ -150,13 +177,28 @@ export class OrderController {
     const DELIVERY_CHARGES = 100;
     const finalTotal = priceAfterDiscount + taxes + DELIVERY_CHARGES;
 
-    return res.json({
+    // Create an order
+    const orderData = {
+      cart,
+      address,
+      comment,
+      customerId,
+      DELIVERY_CHARGES,
+      discountAmount,
+      taxes,
+      tenantId,
       finalTotal,
+      paymentMode,
+      orderStatus: OrderStatus.RECEIVED,
+      paymentStatus: PaymentStatus.PENDING,
+      idempotency: idempotencyKey,
+    };
+    const newOrder = await this.orderService.create(orderData);
+
+    // Payment processing
+
+    return res.json({
+      newOrder,
     });
   };
 }
-// 5 items - 900
-// total 900 -> db
-
-// order - service            product - service
-//   5 items - 900             5 items- 900 1000 throw error
