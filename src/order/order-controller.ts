@@ -12,7 +12,7 @@ import {
   ToppingPricingCache,
 } from "../types";
 import { OrderService } from "./order-service";
-import { OrderStatus, PaymentStatus } from "./order-types";
+import { OrderStatus, PaymentMode, PaymentStatus } from "./order-types";
 
 export class OrderController {
   constructor(
@@ -200,17 +200,22 @@ export class OrderController {
     // Payment processing
     // todo: Error handling
     // todo: add logging
-    const session = await this.paymentGateway.createSession({
-      amount: finalTotal,
-      orderId: newOrder._id.toString(),
-      tenantId: tenantId,
-      currency: "inr",
-      idempotencyKey: idempotencyKey,
-    });
+    if (paymentMode === PaymentMode.CARD) {
+      const session = await this.paymentGateway.createSession({
+        amount: finalTotal,
+        orderId: newOrder._id.toString(),
+        tenantId: tenantId,
+        currency: "inr",
+        idempotencyKey: idempotencyKey,
+      });
 
-    // todo: Update order document -> paymentid -> sessionId
+      // todo: Update order document -> paymentid -> sessionId
+      return res.json({
+        paymentUrl: session.paymentUrl,
+      });
+    }
     return res.json({
-      paymentUrl: session.paymentUrl,
+      paymentUrl: null,
     });
   };
 }

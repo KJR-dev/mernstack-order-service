@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { CartItem } from "../types";
 
 export enum PaymentMode {
-  CARDn = "card",
+  CARD = "card",
   CASH = "cash",
 }
 
