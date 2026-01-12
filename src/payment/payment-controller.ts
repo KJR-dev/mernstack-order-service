@@ -1,10 +1,14 @@
 import { Request, Response } from "express";
 import orderModel from "../order/order-model";
 import { PaymentStatus } from "../order/order-types";
+import { MessageBroker } from "../types/broker";
 import { PaymentGateway } from "./payment-types";
 
 export class PaymentController {
-  constructor(private paymentGateway: PaymentGateway) {}
+  constructor(
+    private paymentGateway: PaymentGateway,
+    private broker: MessageBroker,
+  ) {}
   handleWebhook = async (req: Request, res: Response) => {
     const webhookBody = req.body;
     if (webhookBody.type === "checkout.session.completed") {
@@ -12,7 +16,7 @@ export class PaymentController {
         webhookBody.data.object.id,
       );
       const isPaymentSuccess = verifiedSession.paymentStatus === "paid";
-      await orderModel.findOneAndUpdate(
+      const updateProduct = await orderModel.findOneAndUpdate(
         {
           _id: verifiedSession.metadata.orderId,
         },
@@ -23,6 +27,8 @@ export class PaymentController {
         },
         { new: true },
       );
+      // todo: Think about message broker fail.
+      await this.broker.sendMessage("order", JSON.stringify(updateProduct));
     }
 
     res.json({ success: true });

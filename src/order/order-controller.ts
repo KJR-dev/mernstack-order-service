@@ -11,6 +11,7 @@ import {
   Topping,
   ToppingPricingCache,
 } from "../types";
+import { MessageBroker } from "../types/broker";
 import { OrderService } from "./order-service";
 import { OrderStatus, PaymentMode, PaymentStatus } from "./order-types";
 
@@ -20,6 +21,7 @@ export class OrderController {
     private orderService: OrderService,
     private idempotencyService: IdempotencyService,
     private paymentGateway: PaymentGateway,
+    private broker: MessageBroker,
   ) {}
 
   // =============================
@@ -208,12 +210,13 @@ export class OrderController {
         currency: "inr",
         idempotencyKey: idempotencyKey,
       });
-
+      await this.broker.sendMessage("order", JSON.stringify(newOrder));
       // todo: Update order document -> paymentid -> sessionId
       return res.json({
         paymentUrl: session.paymentUrl,
       });
     }
+    await this.broker.sendMessage("order", JSON.stringify(newOrder));
     return res.json({
       paymentUrl: null,
     });
