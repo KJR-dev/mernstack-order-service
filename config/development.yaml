@@ -7,7 +7,5 @@ database:
   url: mongodb+srv://sahooj168_db_user:1reUhbAX86EyWDZA@cluster0.qv3001f.mongodb.net/order?appName=Cluster0
 kafka:
   broker: localhost:9092
-stripe:
-  secretKey: sk_test_51SneVY8zS4J1u5UVyyS3g07dAzRcRIakmJS5P2EHHCfaAZcLRPIDLUtXsv3XO4dZGNsL6O8yOLlPaepHDGBKY2UO00HeSCWrn3
 frontend:
   clientUI: http://localhost:3000
