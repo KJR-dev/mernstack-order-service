@@ -19,6 +19,7 @@ export class StripeGateway implements PaymentGateway {
         // customer_email:options.email
         metadata: {
           orderId: options.orderId,
+          tenantId:options.tenantId,
         },
         billing_address_collection: "required",
         // todo: In future, capture structure address from customer
@@ -48,8 +49,8 @@ export class StripeGateway implements PaymentGateway {
           },
         ],
         mode: "payment",
-        success_url: `${config.get("frontend.clientUI")}/payment?success=true&orderId=${options.orderId}`,
-        cancel_url: `${config.get("frontend.clientUI")}/payment?success=false&orderId=${options.orderId}`,
+        success_url: `${config.get("frontend.clientUI")}/payment?success=true&orderId=${options.orderId}&tenantId=${options.tenantId}`,
+        cancel_url: `${config.get("frontend.clientUI")}/payment?success=false&orderId=${options.orderId}&tenantId=${options.tenantId}`,
       },
       { idempotencyKey: options.idempotencyKey },
     );
