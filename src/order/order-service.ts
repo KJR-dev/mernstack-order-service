@@ -46,7 +46,11 @@ export class OrderService {
     }
   }
 
-  async get(customerId: mongoose.Types.ObjectId) {
-    return await orderModel.find({ customerId }, { cart: 0});
+  async getByUserId(customerId: mongoose.Types.ObjectId) {
+    return await orderModel.find({ customerId }, { cart: 0 });
+  }
+
+  async getByOrderId(orderId: string) {
+    return await orderModel.findOne({ _id: orderId });
   }
 }
