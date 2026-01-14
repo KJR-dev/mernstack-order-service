@@ -46,7 +46,7 @@ export class OrderService {
     }
   }
 
-  async get(idempotencyKey: string) {
-    return await idempotencyModel.findOne({ key: idempotencyKey });
+  async get(customerId: mongoose.Types.ObjectId) {
+    return await orderModel.find({ customerId }, { cart: 0});
   }
 }

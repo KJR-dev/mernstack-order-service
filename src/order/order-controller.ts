@@ -1,6 +1,9 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
+import { Request as AuthRequest } from "express-jwt";
+import createHttpError from "http-errors";
 import { Logger } from "winston";
 import couponModel from "../coupon/coupon-model";
+import { CustomerService } from "../customer/customer-service";
 import { IdempotencyService } from "../idempotency/idempotency-service";
 import { PaymentGateway } from "../payment/payment-types";
 import productCacheModel from "../productCache/productCacheModel";
@@ -22,6 +25,7 @@ export class OrderController {
     private idempotencyService: IdempotencyService,
     private paymentGateway: PaymentGateway,
     private broker: MessageBroker,
+    private customerService: CustomerService,
   ) {}
 
   // =============================
@@ -220,5 +224,24 @@ export class OrderController {
     return res.json({
       paymentUrl: null,
     });
+  };
+
+  getById = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const userId = req.auth.sub;
+    if (!userId) {
+      return next(createHttpError(400, "No user id found!"));
+    }
+
+    // todo: Add error handling.
+    const customer = await this.customerService.get(userId);
+
+    if (!customer) {
+      return next(createHttpError(400, "No customer found!"));
+    }
+
+    // todo: Implement pagination.
+    const order = await this.orderService.get(customer._id);
+
+    res.json(order);
   };
 }
