@@ -252,12 +252,14 @@ export class OrderController {
   ) => {
     const { orderId } = req.params;
     const { sub: userId, role, tenant: tenantId } = req.auth;
-    const order = await this.orderService.getByOrderId(orderId);
+    const fields =
+      typeof req.query.fields === "string" ? req.query.fields.split(",") : [];
+    const order = await this.orderService.getByOrderId(orderId, fields);
     if (!order) {
       return next(createHttpError(400, "Order does not exist"));
     }
     // What roles can access this endpoint: [Admin, Manager(only access own restaurant user order), User(Own order)]
-    if (role === "admin"  ) {
+    if (role === "admin") {
       return res.json(order);
     }
 

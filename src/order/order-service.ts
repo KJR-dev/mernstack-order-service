@@ -50,7 +50,16 @@ export class OrderService {
     return await orderModel.find({ customerId }, { cart: 0 });
   }
 
-  async getByOrderId(orderId: string) {
-    return await orderModel.findOne({ _id: orderId });
+  async getByOrderId(orderId: string, fields: string[]) {
+    fields.length ? fields.push("customerId") : fields;
+    const projection =
+      fields.length > 0
+        ? fields.reduce((acc, field) => {
+            acc[field] = 1;
+            return acc;
+          }, {})
+        : undefined;
+
+    return await orderModel.findOne({ _id: orderId }, projection);
   }
 }
