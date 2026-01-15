@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Request as AuthRequest } from "express-jwt";
 import createHttpError from "http-errors";
 import { Logger } from "winston";
+import { Roles } from "../common/constants";
 import couponModel from "../coupon/coupon-model";
 import { CustomerService } from "../customer/customer-service";
 import { IdempotencyService } from "../idempotency/idempotency-service";
@@ -226,6 +227,31 @@ export class OrderController {
     });
   };
 
+  getAll = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const { role, tenantId: userTenantId } = req.auth;
+    const { tenantId } = req.query;
+
+    if (role === Roles.ADMIN) {
+      const filter = {};
+      if (tenantId) {
+        filter["tenantId"] = tenantId;
+      }
+
+      // todo: VERY IMPORTANT. add pagination.
+      const orders = await this.orderService.getByTenantId(filter);
+      return res.json(orders);
+    }
+
+    if (role === Roles.MANAGER) {
+      const orders = await this.orderService.getByTenantId({
+        tenantId: userTenantId,
+      });
+      return res.json(orders);
+    }
+
+    return next(createHttpError(403, "Not allowed"));
+  };
+
   getByUserId = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const userId = req.auth.sub;
     if (!userId) {
@@ -259,16 +285,16 @@ export class OrderController {
       return next(createHttpError(400, "Order does not exist"));
     }
     // What roles can access this endpoint: [Admin, Manager(only access own restaurant user order), User(Own order)]
-    if (role === "admin") {
+    if (role === Roles.ADMIN) {
       return res.json(order);
     }
 
     const myRestaurantOrder = order.tenantId === tenantId;
-    if (role === "manager" && myRestaurantOrder) {
+    if (role === Roles.MANAGER && myRestaurantOrder) {
       return res.json(order);
     }
 
-    if (role === "customer") {
+    if (role === Roles.CUSTOMER) {
       const customer = await this.customerService.get(userId.toString());
       if (!customer) {
         return next(createHttpError(400, "Customer not found"));

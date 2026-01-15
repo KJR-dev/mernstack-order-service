@@ -47,7 +47,9 @@ export class OrderService {
   }
 
   async getByUserId(customerId: mongoose.Types.ObjectId) {
-    return await orderModel.find({ customerId }, { cart: 0 });
+    return await orderModel
+      .find({ customerId }, { cart: 0 })
+      .sort({ createdAt: -1 });
   }
 
   async getByOrderId(orderId: string, fields: string[]) {
@@ -63,6 +65,17 @@ export class OrderService {
         : undefined;
 
     // return  orderModel.findOne({ _id: orderId }, projection).populated("customerId").exec();
-    return await orderModel.findOne({ _id: orderId }, projection).populate("customerId").exec();
+    return await orderModel
+      .findOne({ _id: orderId }, projection)
+      .populate("customerId")
+      .exec();
+  }
+
+  async getByTenantId(filter) {
+    return await orderModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .populate("customerId")
+      .exec();
   }
 }

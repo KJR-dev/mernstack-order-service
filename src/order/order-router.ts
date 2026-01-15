@@ -1,6 +1,8 @@
 import express from "express";
+import { Roles } from "../common/constants";
 import { createMessageBroker } from "../common/factories/brokerFactory";
 import authenticate from "../common/middleware/authenticate";
+import { canAccess } from "../common/middleware/canAccess";
 import logger from "../config/logger";
 import { CustomerService } from "../customer/customer-service";
 import { IdempotencyService } from "../idempotency/idempotency-service";
@@ -25,6 +27,12 @@ const orderController = new OrderController(
 );
 
 orderRouter.post("/", authenticate, asyncWrapper(orderController.create));
+orderRouter.get(
+  "/",
+  authenticate,
+  canAccess([Roles.ADMIN, Roles.MANAGER]),
+  asyncWrapper(orderController.getAll),
+);
 orderRouter.get(
   "/mine",
   authenticate,
