@@ -273,7 +273,7 @@ export class OrderController {
       if (!customer) {
         return next(createHttpError(400, "Customer not found"));
       }
-      if (order.customerId.toString() === customer._id.toString()) {
+      if (order.customerId._id.toString() === customer._id.toString()) {
         return res.json(order);
       }
     }

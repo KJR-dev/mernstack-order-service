@@ -51,15 +51,18 @@ export class OrderService {
   }
 
   async getByOrderId(orderId: string, fields: string[]) {
-    fields.length ? fields.push("customerId") : fields;
     const projection =
       fields.length > 0
-        ? fields.reduce((acc, field) => {
-            acc[field] = 1;
-            return acc;
-          }, {})
+        ? fields.reduce(
+            (acc, field) => {
+              acc[field] = 1;
+              return acc;
+            },
+            { customerId: 1 },
+          )
         : undefined;
 
-    return await orderModel.findOne({ _id: orderId }, projection);
+    // return  orderModel.findOne({ _id: orderId }, projection).populated("customerId").exec();
+    return await orderModel.findOne({ _id: orderId }, projection).populate("customerId").exec();
   }
 }
