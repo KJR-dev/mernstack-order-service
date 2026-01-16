@@ -43,5 +43,11 @@ orderRouter.get(
   authenticate,
   asyncWrapper(orderController.getByOrderId),
 );
+orderRouter.patch(
+  "/change-status/:orderId",
+  authenticate,
+  canAccess([Roles.ADMIN, Roles.MANAGER]),
+  asyncWrapper(orderController.changeStatus),
+);
 
 export default orderRouter;

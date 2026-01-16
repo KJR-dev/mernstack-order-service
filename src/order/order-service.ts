@@ -52,7 +52,7 @@ export class OrderService {
       .sort({ createdAt: -1 });
   }
 
-  async getByOrderId(orderId: string, fields: string[]) {
+  async getByOrderId(orderId: string, fields: string[] = []) {
     const projection =
       fields.length > 0
         ? fields.reduce(
@@ -77,5 +77,13 @@ export class OrderService {
       .sort({ createdAt: -1 })
       .populate("customerId")
       .exec();
+  }
+
+  async changeStatus(orderId: string, status: string) {
+    return await orderModel.findOneAndUpdate(
+      { _id: orderId },
+      { orderStatus: status },
+      { new: true },
+    );
   }
 }
