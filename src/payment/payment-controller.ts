@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import orderModel from "../order/order-model";
-import { PaymentStatus } from "../order/order-types";
+import { OrderEvents, PaymentStatus } from "../order/order-types";
 import { MessageBroker } from "../types/broker";
 import { PaymentGateway } from "./payment-types";
 
@@ -16,7 +16,7 @@ export class PaymentController {
         webhookBody.data.object.id,
       );
       const isPaymentSuccess = verifiedSession.paymentStatus === "paid";
-      const updateProduct = await orderModel.findOneAndUpdate(
+      const updateOrder = await orderModel.findOneAndUpdate(
         {
           _id: verifiedSession.metadata.orderId,
         },
@@ -28,7 +28,15 @@ export class PaymentController {
         { new: true },
       );
       // todo: Think about message broker fail.
-      await this.broker.sendMessage("order", JSON.stringify(updateProduct));
+      const brokerMessage = {
+        event_types: OrderEvents.PAYMENT_STATUS_UPDATE,
+        data: updateOrder,
+      };
+      await this.broker.sendMessage(
+        "order",
+        JSON.stringify(brokerMessage),
+        updateOrder._id.toString(),
+      );
     }
 
     res.json({ success: true });

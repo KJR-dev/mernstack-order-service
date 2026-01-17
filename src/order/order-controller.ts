@@ -212,6 +212,12 @@ export class OrderController {
     // Payment processing
     // todo: Error handling
     // todo: add logging
+
+    const brokerMessage = {
+      event_types: OrderEvents.ORDER_CREATE,
+      data: newOrder,
+    };
+
     if (paymentMode === PaymentMode.CARD) {
       const session = await this.paymentGateway.createSession({
         amount: finalTotal,
@@ -220,11 +226,6 @@ export class OrderController {
         currency: "inr",
         idempotencyKey: idempotencyKey,
       });
-
-      const brokerMessage = {
-        event_types: OrderEvents.ORDER_CREATE,
-        data: newOrder,
-      };
 
       await this.broker.sendMessage(
         "order",
@@ -236,6 +237,11 @@ export class OrderController {
         paymentUrl: session.paymentUrl,
       });
     }
+    await this.broker.sendMessage(
+      "order",
+      JSON.stringify(brokerMessage),
+      newOrder._id.toString(),
+    );
     await this.broker.sendMessage("order", JSON.stringify(newOrder));
     return res.json({
       paymentUrl: null,
@@ -359,6 +365,15 @@ export class OrderController {
       );
 
       // todo: send to kafka
+      const brokerMessage = {
+        event_types: OrderEvents.ORDER_STATUS_UPDATE,
+        data: updatedOrder,
+      };
+      await this.broker.sendMessage(
+        "order",
+        JSON.stringify(brokerMessage),
+        updatedOrder._id.toString(),
+      );
 
       return res.json({ _id: updatedOrder._id });
     }
