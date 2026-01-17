@@ -334,7 +334,7 @@ export class OrderController {
       if (!order) {
         return next(createHttpError(400, "Order not found."));
       }
-      const isMyTenantOrder = order.tenantId === tenantId.toString();
+      const isMyTenantOrder = order.tenantId === tenantId?.toString();
       if (role === Roles.MANAGER && !isMyTenantOrder) {
         return next(createHttpError(403, "Not allowed."));
       }
