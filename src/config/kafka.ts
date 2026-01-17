@@ -92,15 +92,23 @@ export class KafkaBroker implements MessageBroker {
     });
   }
 
-  async sendMessage(topic: string, message: string) {
+  async sendMessage(topic: string, message: string, key: string) {
     // ✅ Producer safety
     if (!message || !message.trim()) {
       throw new Error("Kafka message cannot be empty");
     }
 
+    const data: { value: string; key?: string } = {
+      value: message,
+    };
+
+    if (key) {
+      data.key = key;
+    }
+
     await this.producer.send({
       topic,
-      messages: [{ value: message }],
+      messages: [data],
     });
   }
 }

@@ -35,3 +35,9 @@ export interface Order {
   paymentStatus: PaymentStatus;
   paymentId?: string;
 }
+
+export enum OrderEvents {
+  ORDER_CREATE = "order_create",
+  PAYMENT_STATUS_UPDATE = "payment_status_update",
+  ORDER_STATUS_UPDATE = "order_status_update",
+}

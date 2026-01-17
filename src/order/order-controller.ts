@@ -17,7 +17,12 @@ import {
 } from "../types";
 import { MessageBroker } from "../types/broker";
 import { OrderService } from "./order-service";
-import { OrderStatus, PaymentMode, PaymentStatus } from "./order-types";
+import {
+  OrderEvents,
+  OrderStatus,
+  PaymentMode,
+  PaymentStatus,
+} from "./order-types";
 
 export class OrderController {
   constructor(
@@ -215,7 +220,17 @@ export class OrderController {
         currency: "inr",
         idempotencyKey: idempotencyKey,
       });
-      await this.broker.sendMessage("order", JSON.stringify(newOrder));
+
+      const brokerMessage = {
+        event_types: OrderEvents.ORDER_CREATE,
+        data: newOrder,
+      };
+
+      await this.broker.sendMessage(
+        "order",
+        JSON.stringify(brokerMessage),
+        newOrder._id.toString(),
+      );
       // todo: Update order document -> paymentid -> sessionId
       return res.json({
         paymentUrl: session.paymentUrl,
@@ -347,6 +362,6 @@ export class OrderController {
 
       return res.json({ _id: updatedOrder._id });
     }
-    return next(createHttpError(403,"Not allowed."))
+    return next(createHttpError(403, "Not allowed."));
   };
 }
