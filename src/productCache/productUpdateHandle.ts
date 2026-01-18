@@ -5,15 +5,15 @@ export const handleProductUpdate = async (value: string) => {
   try {
     const product: ProductMessage = JSON.parse(value);
 
-    if (!product?.id) {
+    if (!product?.data.id) {
       throw new Error("Invalid product message: missing product id");
     }
 
     return await productCacheModel.updateOne(
-      { productId: product.id },
+      { productId: product.data.id },
       {
         $set: {
-          priceConfiguration: product.priceConfiguration,
+          priceConfiguration: product.data.priceConfiguration,
         },
       },
       { upsert: true },

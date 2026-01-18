@@ -212,10 +212,11 @@ export class OrderController {
     // Payment processing
     // todo: Error handling
     // todo: add logging
+    const customer = await this.customerService.get(newOrder[0].customerId);
 
     const brokerMessage = {
       event_types: OrderEvents.ORDER_CREATE,
-      data: newOrder,
+      data: { ...newOrder[0], customerId: customer },
     };
 
     if (paymentMode === PaymentMode.CARD) {
@@ -364,10 +365,14 @@ export class OrderController {
         status,
       );
 
+      const customer = await this.customerService.get(
+        updatedOrder[0].customerId,
+      );
+
       // todo: send to kafka
       const brokerMessage = {
         event_types: OrderEvents.ORDER_STATUS_UPDATE,
-        data: updatedOrder,
+        data: { ...updatedOrder.toObject(), customerId: customer },
       };
       await this.broker.sendMessage(
         "order",
