@@ -11,3 +11,5 @@ stripe:
   secretKey: sk_test_51SneVY8zS4J1u5UVyyS3g07dAzRcRIakmJS5P2EHHCfaAZcLRPIDLUtXsv3XO4dZGNsL6O8yOLlPaepHDGBKY2UO00HeSCWrn3
 frontend:
   clientUI: http://localhost:3000
+  adminUI: http://localhost:5173
+  
