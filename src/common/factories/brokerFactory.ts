@@ -5,7 +5,7 @@ import { MessageBroker } from "../../types/broker";
 let broker: MessageBroker | null = null;
 export const createMessageBroker = (): MessageBroker => {
   if (!broker) {
-    broker = new KafkaBroker("order-service", [config.get("kafka.broker")]);
+    broker = new KafkaBroker("order-service", config.get("kafka.broker"));
   }
   return broker;
 };
