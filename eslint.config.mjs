@@ -9,6 +9,7 @@ export default [
     },
     rules: {
       // 'no-unused-vars': 'error',
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
   pluginJs.configs.recommended,

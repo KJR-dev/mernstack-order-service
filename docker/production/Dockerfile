@@ -62,7 +62,7 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 COPY --from=builder --chown=node:node /home/node/app/dist ./
 
 # Expose the application port
-EXPOSE 5501
+EXPOSE 5503
 
 # Start the Node.js application
 # ⚠️ Make sure this file exists in the dist folder
