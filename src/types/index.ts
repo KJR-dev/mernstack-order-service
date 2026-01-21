@@ -91,8 +91,11 @@ export interface CartItem extends Pick<
   Product,
   "_id" | "name" | "image" | "priceConfiguration"
 > {
-  reduce(arg0: (acc: any, item: any) => any[], arg1: undefined[]): unknown;
-  map(arg0: (item: any) => any): unknown;
+  reduce(
+    arg0: (acc: unknown, item: unknown) => unknown[],
+    arg1: undefined[],
+  ): unknown;
+  map(arg0: (item: unknown) => unknown): unknown;
   chosenConfiguration: {
     priceConfiguration: {
       [key: string]: string;
