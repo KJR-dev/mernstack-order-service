@@ -46,12 +46,10 @@ const cartSchema = new mongoose.Schema<CartItem>({
       of: String,
       required: true,
     },
-    selectedToppings: [
-      {
-        type: [toppingSchema],
-        required: true,
-      },
-    ],
+    selectedToppings: {
+      type: [toppingSchema],
+      required: true,
+    },
   },
 });
 
@@ -115,4 +113,4 @@ const orderSchema = new mongoose.Schema<Order>(
   { timestamps: true },
 );
 
-export default mongoose.model("Order",orderSchema)
+export default mongoose.model("Order", orderSchema);
